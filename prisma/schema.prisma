@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+}
+
+enum DonationMode {
+  CASH
+  UPI
+}
+
+// id is a Postgres autoincrement sequence: atomic under concurrent inserts,
+// used directly as the receipt number so no read-modify-write counter is needed.
+model Donation {
+  id         Int          @id @default(autoincrement())
+  donorName  String
+  plotNo     String?
+  amount     Decimal      @db.Decimal(10, 2)
+  mode       DonationMode @default(CASH)
+  note       String?
+  createdBy  String
+  createdAt  DateTime     @default(now())
+}
+
+// id doubles as the bill/voucher number, same atomicity guarantee as Donation.id.
+model Expense {
+  id        Int      @id @default(autoincrement())
+  title     String
+  category  String?
+  vendor    String?
+  amount    Decimal  @db.Decimal(10, 2)
+  billUrl   String?
+  note      String?
+  createdBy String
+  createdAt DateTime @default(now())
+}
